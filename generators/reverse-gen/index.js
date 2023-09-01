@@ -3,10 +3,9 @@ const Generator = require("yeoman-generator");
 const chalk = require("chalk");
 const yosay = require("yosay");
 const path = require("path");
-const { resolveNamingData } = require('../../helpers/openApiHelper');
-const { loadPreset } = require('../../helpers/loadPreset');
-const inquirer = require('inquirer');
-const inquirerFilePath = require('inquirer-file-path');
+const { resolveNamingData } = require("../../helpers/openApiHelper");
+const { loadPreset } = require("../../helpers/loadPreset");
+const { filesPrompt } = require("../../helpers/filesPrompt");
 
 class BaseReverseGenerator extends Generator {
   generatorPath(file) {
@@ -28,35 +27,32 @@ module.exports = class ReverseGenerator extends BaseReverseGenerator {
     const generatorName = this.fs.readJSON(this.generatorPath("package.json"))
       .name;
 
-    const subGeneratorName = 'foo';
+    const subGeneratorName = "foo";
 
-    inquirer.registerPrompt('filePath', inquirerFilePath);
-    const { filetoAdd } = await inquirer.prompt([{
-      type: 'filePath',
-      name: 'filetoAdd',
-      message: 'Add a file to reverse engineer ?',
+    const filestoAdd = await filesPrompt(this)({
+      message: "Add a file to reverse engineer ?",
       basePath: this.options.target
-    }]);
+    });
 
-    const preset = await loadPreset(this, {basePath: this.options.target});
+    const preset = await loadPreset(this, { basePath: this.options.target });
     const { endpoint } = preset;
 
     this.data = {
-      filetoAdd,
+      filestoAdd,
       endpoint,
       generatorName,
       subGeneratorName,
-      naming: resolveNamingData(preset),
+      naming: resolveNamingData(preset)
     };
 
-    this.log('The following data will be used:');
+    this.log("The following data will be used:");
     this.log(this.data);
 
     const prompts = [
       {
-        type: 'confirm',
-        name: 'continue',
-        message: 'Does this data looks good?',
+        type: "confirm",
+        name: "continue",
+        message: "Does this data looks good?",
         default: true
       }
     ];
@@ -64,15 +60,16 @@ module.exports = class ReverseGenerator extends BaseReverseGenerator {
     return this.prompt(prompts).then(props => {
       // To access props later use this.props.someAnswer;
       if (!props.continue) {
-        throw new Error('Aborted by the user');
+        throw new Error("Aborted by the user");
       }
+
       this.props = props;
     });
   }
 
   writing() {
     this.fs.copy(
-      this.templatePath('index.js.ejs'),
+      this.templatePath("index.js.ejs"),
       this.generatorPath(`generators/${this.data.subGeneratorName}/index.js`)
     );
   }
