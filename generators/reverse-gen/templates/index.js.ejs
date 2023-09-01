@@ -1,0 +1,61 @@
+'use strict';
+const Generator = require('yeoman-generator');
+const chalk = require('chalk');
+const yosay = require('yosay');
+const {
+  loadPreset,
+  getAllEndpointParams,
+  getBodyParams,
+  resolveNamingData
+} = require('generator-ts-from-openapi');
+
+module.exports = class extends Generator {
+
+  async prompting() {
+    // Have Yeoman greet the user.
+    this.log(
+      yosay(
+        `Welcome to the doozie ${chalk.red('<%- generatorName %>')} generator!`
+      )
+    );
+
+    const preset = await loadPreset(this);
+    const { endpoint } = preset;
+
+    this.data = {
+      endpoint,
+      ...resolveNamingData(preset),
+      pathParams: endpoint.parameters.filter(param => param.in === 'path'),
+      allParams: getAllEndpointParams(endpoint),
+      bodyParams: getBodyParams(endpoint),
+    };
+
+    this.log('The following data will be used:');
+    this.log(this.data);
+
+    const prompts = [
+      {
+        type: 'confirm',
+        name: 'continue',
+        message: 'Does this data looks good?',
+        default: true
+      }
+    ];
+
+    return this.prompt(prompts).then(props => {
+      // To access props later use this.props.someAnswer;
+      if (!props.continue) {
+        throw new Error('Aborted by the user');
+      }
+      this.props = props;
+    });
+  }
+
+  writing() {
+    <%- writingScript %>
+  }
+
+  install() {
+    // this.installDependencies();
+  }
+};

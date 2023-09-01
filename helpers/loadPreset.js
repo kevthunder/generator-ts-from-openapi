@@ -10,15 +10,16 @@ const helpers = {
   /**
    *
    * @param {Generator} command
+   * @param {Object} options
+   * @param {String} options.basePath    path containing the preset folder
    * @returns
    */
-  async loadPreset(command) {
-    const configPath = path.join(
-      path.dirname(command.resolved),
-      "..",
-      "..",
-      "presets"
-    );
+  async loadPreset(command, options) {
+    const opt = {
+      basePath: path.join(path.dirname(command.resolved), "..", ".."),
+      ...options
+    };
+    const configPath = path.join(opt.basePath, "presets");
     console.log("Main:", configPath);
     const files = await fs.readdir(configPath, { withFileTypes: true });
     // Console.log(files);
