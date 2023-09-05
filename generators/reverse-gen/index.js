@@ -31,7 +31,7 @@ module.exports = class ReverseGenerator extends BaseReverseGenerator {
 
     const filestoAdd = await filesPrompt(this)({
       message: "Add a file to reverse engineer ?",
-      basePath: this.options.target
+      basePath: this.destinationPath()
     });
 
     const preset = await loadPreset(this, { basePath: this.options.target });
